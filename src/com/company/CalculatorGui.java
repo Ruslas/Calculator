@@ -9,6 +9,9 @@ import javax.swing.*;
 import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,6 +44,48 @@ public class CalculatorGui extends JFrame {
             buttonMult, buttonDivide, buttonMinus, buttonCompute,
             buttonBracketOpen, buttonBracketClose, buttonDot, buttonClear};
 
+    private class History {
+        private ArrayList<String> history = new ArrayList<>();
+        private int listCursor = -1;
+
+        private void addRecord(String rec) {
+            if (!history.isEmpty() && rec.equals(history.get(history.size() - 1))) {
+                return;
+            }
+            if (listCursor < history.size() - 1) {
+                history.subList(listCursor, history.size()).clear();
+            }
+            listCursor = history.size() - 1;
+            history.add(rec);
+            listCursor++;
+        }
+
+        private String undo() {
+            if (listCursor < 1) {
+                return null;
+            }
+            listCursor--;
+            return history.get(listCursor);
+        }
+
+        private String redo() {
+            if (listCursor >= history.size() - 1) {
+                return null;
+            }
+            listCursor++;
+            return history.get(listCursor);
+        }
+
+        private void printState() {
+            System.out.println(history);
+            System.out.println("listCursor = " + listCursor);
+            System.out.println("history.size() = " + history.size());
+        }
+    }
+
+    private History hist = new History();
+
+
     {
         Font fontS = new Font("Arial", Font.PLAIN, 35);
         Font fontB = new Font("Arial", Font.PLAIN, 60);
@@ -51,29 +96,37 @@ public class CalculatorGui extends JFrame {
         }
         buttonClear.setForeground(Color.RED);
         buttonClear.addActionListener(new ClearButtonAction());
-        buttonCompute.addActionListener(new ComputeButtonListener());
-        buttonRedo.setBorder(new LineBorder(new Color(179, 204, 255), 6));
+        buttonCompute.addActionListener(new ComputeButtonAction());
         buttonUndo.setBorder(new LineBorder(new Color(179, 204, 255), 6));
+        buttonUndo.addActionListener(new UndoButtonAction());
+        buttonRedo.setBorder(new LineBorder(new Color(179, 204, 255), 6));
+        buttonRedo.addActionListener(new RedoButtonAction());
     }
 
     private class MathButtonAction extends AbstractAction {
         @Override
         public void actionPerformed(ActionEvent e) {
             display.replaceSelection(e.getActionCommand().trim());
+            display.requestFocusInWindow();
         }
     }
 
     private class ClearButtonAction extends AbstractAction {
         @Override
         public void actionPerformed(ActionEvent e) {
+            hist.addRecord(display.getText());
+            hist.printState();
             display.setText("");
+            display.requestFocusInWindow();
         }
     }
 
-    private class ComputeButtonListener extends AbstractAction {
+    private class ComputeButtonAction extends AbstractAction {
         @Override
         public void actionPerformed(ActionEvent e) {
             String expression = display.getText();
+            hist.addRecord(expression);
+            hist.printState();
             String result;
             try {
                 result = String.valueOf(mathExpressionCompute(expression));
@@ -82,6 +135,30 @@ public class CalculatorGui extends JFrame {
             }
 
             display.setText(result);
+            hist.addRecord(result);
+            hist.printState();
+        }
+    }
+
+    private class UndoButtonAction extends AbstractAction {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String rec = hist.undo();
+            hist.printState();
+            if (rec != null) {
+                display.setText(rec);
+            }
+        }
+    }
+
+    private class RedoButtonAction extends AbstractAction {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String rec = hist.redo();
+            hist.printState();
+            if (rec != null) {
+                display.setText(rec);
+            }
         }
     }
 
