@@ -16,6 +16,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class CalculatorGui extends JFrame {
+    private static final String EXPRESSION_PATTERN = "[0-9[+*()-/.]]+|\\d";
+
     private JPanel mainPanel = new JPanel();
     private JTextField display = new JTextField(15);
     private JButton button1 = new JButton(" 1 ");
@@ -43,6 +45,64 @@ public class CalculatorGui extends JFrame {
             button5, button6, button7, button8, button9, button0, buttonPlus,
             buttonMult, buttonDivide, buttonMinus, buttonCompute,
             buttonBracketOpen, buttonBracketClose, buttonDot, buttonClear};
+
+    private History hist = new History();
+    private MathExpressionComputer comp =
+            new MathExpressionComputer(EXPRESSION_PATTERN);
+    private Color standard = new Color(179, 204, 255);
+
+    {
+        Font fontS = new Font("Arial", Font.PLAIN, 35);
+        Font fontB = new Font("Arial", Font.PLAIN, 60);
+        Font fontUR = new Font("Arial", Font.PLAIN, 20);
+        mainPanel.setBackground(standard);
+        display.setFont(fontS);
+        display.setBorder(new LineBorder(standard, 6));
+        for (JButton button : buttons) {
+            button.setFont(fontB);
+            button.setBorder(new LineBorder(standard, 10));
+        }
+        buttonClear.setForeground(Color.RED);
+        buttonClear.addActionListener(new ClearButtonAction());
+        buttonCompute.addActionListener(new ComputeButtonAction());
+        buttonUndo.setBorder(new LineBorder(standard, 6));
+        buttonUndo.addActionListener(new UndoButtonAction());
+        buttonUndo.setFont(fontUR);
+        buttonRedo.setBorder(new LineBorder(standard, 6));
+        buttonRedo.addActionListener(new RedoButtonAction());
+        buttonRedo.setFont(fontUR);
+    }
+
+    private class MathExpressionComputer {
+        private ScriptEngine engine;
+        private Pattern pattern;
+
+        public MathExpressionComputer(String patternStr) {
+            ScriptEngineManager mng = new ScriptEngineManager();
+            this.engine = mng.getEngineByName("JavaScript");
+            this.pattern = Pattern.compile(patternStr);
+        }
+
+        private double mathExpressionCompute(String exp) throws ScriptException {
+            if (!isMathExpression(exp)) {
+                throw new ScriptException("ILLEGAL SYMBOLS");
+            }
+
+            double result;
+            try {
+                result = Double.valueOf(engine.eval(exp).toString());
+            } catch (ScriptException e) {
+                throw new ScriptException("ILLEGAL FORMAT");
+            }
+
+            return result;
+        }
+
+        private boolean isMathExpression(String exp) {
+            Matcher matcher = pattern.matcher(exp);
+            return matcher.matches();
+        }
+    }
 
     private class History {
         private ArrayList<String> history = new ArrayList<>();
@@ -83,26 +143,6 @@ public class CalculatorGui extends JFrame {
         }
     }
 
-    private History hist = new History();
-
-
-    {
-        Font fontS = new Font("Arial", Font.PLAIN, 35);
-        Font fontB = new Font("Arial", Font.PLAIN, 60);
-        display.setFont(fontS);
-        for (JButton button : buttons) {
-            button.setFont(fontB);
-            button.setBorder(new LineBorder(new Color(179, 204, 255), 10));
-        }
-        buttonClear.setForeground(Color.RED);
-        buttonClear.addActionListener(new ClearButtonAction());
-        buttonCompute.addActionListener(new ComputeButtonAction());
-        buttonUndo.setBorder(new LineBorder(new Color(179, 204, 255), 6));
-        buttonUndo.addActionListener(new UndoButtonAction());
-        buttonRedo.setBorder(new LineBorder(new Color(179, 204, 255), 6));
-        buttonRedo.addActionListener(new RedoButtonAction());
-    }
-
     private class MathButtonAction extends AbstractAction {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -129,7 +169,7 @@ public class CalculatorGui extends JFrame {
             hist.printState();
             String result;
             try {
-                result = String.valueOf(mathExpressionCompute(expression));
+                result = String.valueOf(comp.mathExpressionCompute(expression));
             } catch (ScriptException except) {
                 result = except.getMessage();
             }
@@ -165,14 +205,15 @@ public class CalculatorGui extends JFrame {
     public CalculatorGui() {
         setResizable(false);
 
-        JPanel screenPanel = new JPanel();
-        screenPanel.setLayout(new FlowLayout());
+        JPanel displayPanel = new JPanel();
+        displayPanel.setLayout(new FlowLayout());
+        displayPanel.setBackground(Color.BLACK);
         display.setHorizontalAlignment(4);
-        screenPanel.add(display);
+        displayPanel.add(display);
         JPanel buttonsPanel = new JPanel();
         buttonsPanel.setLayout(new GridLayout(5, 4));
         JPanel unReDo = new JPanel();
-        unReDo.setBackground(new Color(179, 204, 255));
+        unReDo.setBackground(standard);
         unReDo.setLayout(new GridLayout(2, 1));
         unReDo.add(buttonUndo);
         unReDo.add(buttonRedo);
@@ -186,36 +227,17 @@ public class CalculatorGui extends JFrame {
         }
 
         mainPanel.setLayout(new FlowLayout());
-        mainPanel.add(screenPanel);
+        mainPanel.add(displayPanel);
         mainPanel.add(buttonsPanel);
         add(mainPanel);
     }
 
-    private static double mathExpressionCompute(String exp) throws ScriptException {
-        if (!isMathExpression(exp)) {
-            throw new ScriptException("ILLEGAL SYMBOLS");
-        }
-        ScriptEngineManager mng = new ScriptEngineManager();
-        ScriptEngine engine = mng.getEngineByName("JavaScript");
-
-        double result;
-        try {
-            result = Double.valueOf(engine.eval(exp).toString());
-        } catch (ScriptException e) {
-            throw new ScriptException("ILLEGAL FORMAT");
-        }
-
-        return result;
-    }
-
-    private static boolean isMathExpression(String exp) {
-        String patternStr = "[0-9[+*()-/.]]+|\\d";
-        Pattern pattern = Pattern.compile(patternStr);
-        Matcher matcher = pattern.matcher(exp);
-        return matcher.matches();
-    }
-
     public static void main(String[] args) {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         SwingConsole.run(new CalculatorGui(), 500, 570);
     }
 }
