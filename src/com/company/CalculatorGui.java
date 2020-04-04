@@ -140,6 +140,7 @@ public class CalculatorGui extends JFrame {
             System.out.println(history);
             System.out.println("listCursor = " + listCursor);
             System.out.println("history.size() = " + history.size());
+
         }
     }
 
