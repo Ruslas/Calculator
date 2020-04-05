@@ -10,13 +10,11 @@ import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class CalculatorGui extends JFrame {
-    private static final String EXPRESSION_PATTERN = "[0-9[+*()-/.]]+|\\d";
+    private static final String EXPRESSION_PATTERN = "[0-9[+*()-/.]E]+|\\d";
 
     private JPanel mainPanel = new JPanel();
     private JTextField display = new JTextField(15);
@@ -49,26 +47,26 @@ public class CalculatorGui extends JFrame {
     private History hist = new History();
     private MathExpressionComputer comp =
             new MathExpressionComputer(EXPRESSION_PATTERN);
-    private Color standard = new Color(179, 204, 255);
+    private Color azure = new Color(179, 204, 255);
 
     {
-        Font fontS = new Font("Arial", Font.PLAIN, 35);
-        Font fontB = new Font("Arial", Font.PLAIN, 60);
-        Font fontUR = new Font("Arial", Font.PLAIN, 20);
-        mainPanel.setBackground(standard);
+        Font fontS = new Font("Arial", Font.PLAIN, 23);
+        Font fontB = new Font("Arial", Font.PLAIN, 40);
+        Font fontUR = new Font("Arial", Font.PLAIN, 14);
+        mainPanel.setBackground(azure);
         display.setFont(fontS);
-        display.setBorder(new LineBorder(standard, 6));
+        display.setBorder(new LineBorder(azure, 6));
         for (JButton button : buttons) {
             button.setFont(fontB);
-            button.setBorder(new LineBorder(standard, 10));
+            button.setBorder(new LineBorder(azure, 10));
         }
         buttonClear.setForeground(Color.RED);
         buttonClear.addActionListener(new ClearButtonAction());
         buttonCompute.addActionListener(new ComputeButtonAction());
-        buttonUndo.setBorder(new LineBorder(standard, 6));
+        buttonUndo.setBorder(new LineBorder(azure, 6));
         buttonUndo.addActionListener(new UndoButtonAction());
         buttonUndo.setFont(fontUR);
-        buttonRedo.setBorder(new LineBorder(standard, 6));
+        buttonRedo.setBorder(new LineBorder(azure, 6));
         buttonRedo.addActionListener(new RedoButtonAction());
         buttonRedo.setFont(fontUR);
     }
@@ -135,13 +133,6 @@ public class CalculatorGui extends JFrame {
             listCursor++;
             return history.get(listCursor);
         }
-
-        private void printState() {
-            System.out.println(history);
-            System.out.println("listCursor = " + listCursor);
-            System.out.println("history.size() = " + history.size());
-
-        }
     }
 
     private class MathButtonAction extends AbstractAction {
@@ -156,7 +147,6 @@ public class CalculatorGui extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             hist.addRecord(display.getText());
-            hist.printState();
             display.setText("");
             display.requestFocusInWindow();
         }
@@ -167,7 +157,6 @@ public class CalculatorGui extends JFrame {
         public void actionPerformed(ActionEvent e) {
             String expression = display.getText();
             hist.addRecord(expression);
-            hist.printState();
             String result;
             try {
                 result = String.valueOf(comp.mathExpressionCompute(expression));
@@ -177,7 +166,6 @@ public class CalculatorGui extends JFrame {
 
             display.setText(result);
             hist.addRecord(result);
-            hist.printState();
         }
     }
 
@@ -185,7 +173,6 @@ public class CalculatorGui extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             String rec = hist.undo();
-            hist.printState();
             if (rec != null) {
                 display.setText(rec);
             }
@@ -196,7 +183,6 @@ public class CalculatorGui extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             String rec = hist.redo();
-            hist.printState();
             if (rec != null) {
                 display.setText(rec);
             }
@@ -214,7 +200,7 @@ public class CalculatorGui extends JFrame {
         JPanel buttonsPanel = new JPanel();
         buttonsPanel.setLayout(new GridLayout(5, 4));
         JPanel unReDo = new JPanel();
-        unReDo.setBackground(standard);
+        unReDo.setBackground(azure);
         unReDo.setLayout(new GridLayout(2, 1));
         unReDo.add(buttonUndo);
         unReDo.add(buttonRedo);
@@ -239,6 +225,6 @@ public class CalculatorGui extends JFrame {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        SwingConsole.run(new CalculatorGui(), 500, 570);
+        SwingConsole.run(new CalculatorGui(), 330, 435);
     }
 }

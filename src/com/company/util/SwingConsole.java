@@ -8,7 +8,7 @@ public class SwingConsole {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 f.setTitle(f.getClass().getSimpleName());
-                f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 f.setSize(width, height);
                 f.setVisible(true);
             }
